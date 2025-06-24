@@ -471,6 +471,7 @@ function M.func(opts, on_log, on_complete, session_ctx)
           return
         end
         if session_ctx then Helpers.mark_as_not_viewed(opts.path, session_ctx) end
+        if vim.bo[bufnr].filetype == "rust" then vim.cmd("RustLsp flycheck") end
         on_complete(true, nil)
       end,
     })
@@ -516,6 +517,7 @@ function M.func(opts, on_log, on_complete, session_ctx)
       diff_block.incoming_extmark_id = nil
       diff_block.delete_extmark_id = nil
       remove_diff_block(idx, true)
+      vim.api.nvim_buf_call(bufnr, function() vim.cmd("noautocmd write") end)
       local next_diff_block = get_next_diff_block()
       if next_diff_block then
         local winnr = Utils.get_winid(bufnr)
@@ -740,7 +742,7 @@ function M.func(opts, on_log, on_complete, session_ctx)
     local parent_dir = vim.fn.fnamemodify(abs_path, ":h")
     --- check if the parent dir is exists, if not, create it
     if vim.fn.isdirectory(parent_dir) == 0 then vim.fn.mkdir(parent_dir, "p") end
-    vim.api.nvim_buf_call(bufnr, function() vim.cmd("noautocmd write") end)
+    vim.api.nvim_buf_call(bufnr, function() vim.cmd("write") end)
     if session_ctx then Helpers.mark_as_not_viewed(opts.path, session_ctx) end
     on_complete(true, nil)
   end, { focus = not Config.behaviour.auto_focus_on_diff_view }, session_ctx, M.name)
